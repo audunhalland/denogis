@@ -1,0 +1,10 @@
+version: '3.3'
+
+services:
+    postgres:
+      image: postgis/postgis:11-2.5-alpine
+      ports:
+        - 6543:5432
+      environment:
+        - POSTGRES_USER=denogis
+        - POSTGRES_PASSWORD=denogis
