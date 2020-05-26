@@ -1,19 +1,34 @@
+import { readJson } from "https://deno.land/std/fs/mod.ts";
 import { Client } from "https://deno.land/x/postgres/mod.ts";
 import * as GeoJSON from "./geojson.ts";
 
 // https://spatialreference.org/ref/epsg/4326/
-// The projection also used in GeoJSON
+// This projection is also "compatible" with GeoJSON - albeit we here use a flat projection instead of spherical projection
 const SRID = "4326";
 
 async function recreateTables(client: Client) {
   await client.query("DROP TABLE IF EXISTS test;");
   await client.query(`
   CREATE TABLE test (
-    id Text,
+    id text PRIMARY KEY,
     polygon geometry(POLYGON, ${SRID})
   )
   `);
   console.log("migration done");
+}
+
+interface MunicipalityProps {
+  navn: {
+    navn: string;
+  };
+  kommunenummer: string;
+}
+
+type Municipalities = GeoJSON.FeatureCollection<MunicipalityProps>;
+
+async function readMunicipalities(): Promise<Municipalities> {
+  const geo = await readJson("./kommuner.json");
+  return geo as Municipalities;
 }
 
 function geometryToWKT(geometry: GeoJSON.Geometry): string {
@@ -24,13 +39,22 @@ function geometryToWKT(geometry: GeoJSON.Geometry): string {
 }
 
 async function populate(client: Client) {
-  const geometry = GeoJSON.singlePolygon(
-    [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]],
-  );
-  await client.query(
-    "INSERT INTO test (id, polygon) VALUES ($1, $2)",
-    "test",
-    geometryToWKT(geometry),
+  const municipalities = await readMunicipalities();
+
+  for (const feature of municipalities.features) {
+    const id = feature.properties.kommunenummer;
+
+    if (feature.geometry) {
+      await client.query(
+        "INSERT INTO test (id, polygon) VALUES ($1, $2)",
+        id,
+        geometryToWKT(feature.geometry),
+      );
+    }
+  }
+
+  console.log(
+    `successfully imported ${municipalities.features.length} municipalities`,
   );
 }
 

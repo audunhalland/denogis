@@ -1,21 +1,26 @@
-export interface FeatureCollection {
-  type: "FeatureCollection";
-  features: Array<Feature>;
+export type Coordinate = [number, number];
+
+export interface FeatureCollection<Props> {
+  readonly type: "FeatureCollection";
+  readonly features: Array<Feature<Props>>;
 }
 
-export interface Feature {
-  type: "Feature";
-  geometry: Geometry;
+export interface Feature<Props> {
+  readonly type: "Feature";
+  readonly geometry: Geometry | null;
+  readonly properties: Props;
 }
 
-export interface Geometry {
-  type: "Polygon";
-  coordinates: Array<Array<[number, number]>>;
+export type Geometry = Polygon;
+
+export interface Polygon {
+  readonly type: "Polygon";
+  readonly coordinates: Array<Array<Coordinate>>;
 }
 
 export function singlePolygon(
-  coords: Array<[number, number]>,
-): Geometry {
+  coords: Array<Coordinate>,
+): Polygon {
   return {
     type: "Polygon",
     coordinates: [coords],

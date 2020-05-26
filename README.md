@@ -10,5 +10,5 @@ $ docker-compose up
 ### Run the application
 
 ```
-$ deno run --allow-net=localhost:6543 src/index.ts 
+$ deno run --unstable --allow-net=localhost:6543 --allow-read=./kommuner.json src/index.ts
 ```
