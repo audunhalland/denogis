@@ -1,13 +1,9 @@
 import { Client } from "https://deno.land/x/postgres/mod.ts";
+import * as GeoJSON from "./geojson.ts";
 
 // https://spatialreference.org/ref/epsg/4326/
 // The projection also used in GeoJSON
 const SRID = "4326";
-
-interface Geometry {
-  type: "Polygon";
-  coordinates: Array<Array<[number, number]>>;
-}
 
 async function recreateTables(client: Client) {
   await client.query("DROP TABLE IF EXISTS test;");
@@ -20,14 +16,7 @@ async function recreateTables(client: Client) {
   console.log("migration done");
 }
 
-function singlePolygon(coords: Array<[number, number]>): Geometry {
-  return {
-    type: "Polygon",
-    coordinates: [coords],
-  };
-}
-
-function geometryToWKT(geometry: Geometry): string {
+function geometryToWKT(geometry: GeoJSON.Geometry): string {
   const fmt = geometry.coordinates.map(
     (polygons) => `(${polygons.map((coord) => coord.join(" ")).join(",")})`,
   ).join(",");
@@ -35,7 +24,9 @@ function geometryToWKT(geometry: Geometry): string {
 }
 
 async function populate(client: Client) {
-  const geometry = singlePolygon([[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]);
+  const geometry = GeoJSON.singlePolygon(
+    [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]],
+  );
   await client.query(
     "INSERT INTO test (id, polygon) VALUES ($1, $2)",
     "test",
