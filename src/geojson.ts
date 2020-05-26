@@ -1,4 +1,5 @@
-export type Coordinate = [number, number];
+export type Longitude = number;
+export type Latitude = number;
 
 export interface FeatureCollection<Props> {
   readonly type: "FeatureCollection";
@@ -15,11 +16,11 @@ export type Geometry = Polygon;
 
 export interface Polygon {
   readonly type: "Polygon";
-  readonly coordinates: Array<Array<Coordinate>>;
+  readonly coordinates: Array<Array<[Longitude, Latitude]>>;
 }
 
 export function singlePolygon(
-  coords: Array<Coordinate>,
+  coords: Array<[Longitude, Latitude]>,
 ): Polygon {
   return {
     type: "Polygon",

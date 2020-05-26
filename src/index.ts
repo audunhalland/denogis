@@ -32,10 +32,14 @@ async function readMunicipalities(): Promise<Municipalities> {
 }
 
 function geometryToWKT(geometry: GeoJSON.Geometry): string {
-  const fmt = geometry.coordinates.map(
-    (polygons) => `(${polygons.map((coord) => coord.join(" ")).join(",")})`,
-  ).join(",");
-  return `SRID=${SRID};POLYGON(${fmt})`;
+  switch (geometry.type) {
+    case "Polygon": {
+      const fmt = geometry.coordinates.map(
+        (polygons) => `(${polygons.map((coord) => coord.join(" ")).join(",")})`,
+      ).join(",");
+      return `SRID=${SRID};POLYGON(${fmt})`;
+    }
+  }
 }
 
 async function populate(client: Client) {
